@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { AppProvider, useApp } from './store'
+import { MENTORS } from './data'
 
 // ═══════════════════════════════════════════════════════════════════
 // HOOKS
@@ -188,15 +190,14 @@ function RadarChart() {
   )
 }
 
-function ScoreLineChart({ target }: { target: number }) {
+function ScoreLineChart({ target, baseline = 560 }: { target: number; baseline?: number }) {
   const [ref, inView] = useInView()
-  const baseline = 560
   const w = 280, h = 100, wMin = 490, wMax = 800
 
   const pts = [
-    { wk: 0, s: baseline }, { wk: 2, s: baseline + 18 }, { wk: 4, s: baseline + 38 },
-    { wk: 6, s: baseline + 60 }, { wk: 8, s: baseline + 80 }, { wk: 12, s: target },
-  ].map(p => ({
+    { wk: 0, f: 0 }, { wk: 2, f: 0.15 }, { wk: 4, f: 0.35 },
+    { wk: 6, f: 0.6 }, { wk: 8, f: 0.8 }, { wk: 12, f: 1 },
+  ].map(p => ({ wk: p.wk, s: baseline + (target - baseline) * p.f })).map(p => ({
     x: (p.wk / 12) * w,
     y: h - ((p.s - wMin) / (wMax - wMin)) * h,
   }))
@@ -365,7 +366,7 @@ function WeaknessBar({ subject, pct, color, index }: { subject: string; pct: num
   )
 }
 
-function MentorCard({ mentor }: { mentor: { name: string; cred: string; school: string; tag: string } }) {
+function MentorCard({ mentor, onBook }: { mentor: { name: string; cred: string; school: string; tag: string }; onBook: () => void }) {
   const tiltRef = useTilt(4)
   return (
     <div ref={tiltRef} className="grad-border" style={{ padding: '22px 24px', display: 'flex', gap: 16, alignItems: 'center' }}>
@@ -385,7 +386,7 @@ function MentorCard({ mentor }: { mentor: { name: string; cred: string; school: 
         <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#9AA3B8' }}>{mentor.school}</div>
         <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#7C5CFF', marginTop: 4 }}>{mentor.tag}</div>
       </div>
-      <button className="btn-ghost" style={{ fontSize: 12, padding: '8px 16px', flexShrink: 0 }}>Book</button>
+      <button className="btn-ghost" style={{ fontSize: 12, padding: '8px 16px', flexShrink: 0 }} onClick={onBook} aria-label={`Book ${mentor.name}`}>Book</button>
     </div>
   )
 }
@@ -403,6 +404,7 @@ function Navbar() {
     return () => window.removeEventListener('scroll', h)
   }, [])
 
+  const { openDiagnostic } = useApp()
   const navLinks = ['How it works', 'Features', 'Mentors', 'Pricing']
 
   return (
@@ -435,7 +437,7 @@ function Navbar() {
         </div>
 
         {/* Desktop links */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 36 }} className="hidden md:flex">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 36 }} className="nav-links">
           {navLinks.map(l => (
             <a key={l} href={`#${l.toLowerCase().replace(/ /g, '-')}`}
               style={{ color: '#9AA3B8', fontSize: 14, fontFamily: 'Inter, sans-serif', textDecoration: 'none', transition: 'color 0.2s ease' }}
@@ -445,12 +447,12 @@ function Navbar() {
           ))}
         </div>
 
-        <button className="btn-lime hidden md:inline-flex" style={{ fontSize: 13, padding: '10px 20px' }}>
+        <button className="btn-lime nav-cta" style={{ fontSize: 13, padding: '10px 20px' }} onClick={openDiagnostic}>
           Start Free Diagnostic
         </button>
 
         {/* Mobile toggle */}
-        <button onClick={() => setMenuOpen(o => !o)} className="md:hidden"
+        <button onClick={() => setMenuOpen(o => !o)} className="nav-burger" aria-label="Toggle menu" aria-expanded={menuOpen}
           style={{ background: 'none', border: 'none', color: '#9AA3B8', cursor: 'pointer', padding: 8 }}>
           <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
             {menuOpen
@@ -475,7 +477,7 @@ function Navbar() {
                 {l}
               </a>
             ))}
-            <button className="btn-lime" style={{ marginTop: 16, justifyContent: 'center' }}>Start Free Diagnostic</button>
+            <button className="btn-lime" style={{ marginTop: 16, justifyContent: 'center' }} onClick={() => { setMenuOpen(false); openDiagnostic() }}>Start Free Diagnostic</button>
           </div>
         </div>
       )}
@@ -488,6 +490,7 @@ function Navbar() {
 // ═══════════════════════════════════════════════════════════════════
 
 function HeroSection() {
+  const { openDiagnostic, openWatch } = useApp()
   const [ref, inView] = useInView(0.05)
   const t1 = useTypewriter("Let's break this down step by step…", inView, 40, 800)
   const t2 = useTypewriter('Want me to explain it another way?', inView, 38, 3500)
@@ -516,13 +519,13 @@ function HeroSection() {
             }}>
               <Dot color="#22D3EE" />
               <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#22D3EE', letterSpacing: '0.05em', fontWeight: 500 }}>
-                Now teaching live: GMAT Focus &amp; GRE
+                Now teaching live: GMAT Focus & GRE
               </span>
             </div>
           </div>
         </AnimateIn>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 60, alignItems: 'center' }} className="max-sm:grid-cols-1">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 60, alignItems: 'center' }} className="r-grid-2">
           {/* Left: copy */}
           <div>
             <AnimateIn delay={100}>
@@ -531,7 +534,7 @@ function HeroSection() {
                 letterSpacing: '-0.03em', marginBottom: 24,
                 fontSize: 'clamp(44px, 5.5vw, 80px)', color: '#F5F7FF',
               }}>
-                Your GMAT &amp; GRE tutor never sleeps.{' '}
+                Your GMAT & GRE tutor never sleeps.{' '}
                 <span>It{' '}
                   <span className="shimmer-text">teaches</span>
                   , not just tells.
@@ -545,8 +548,8 @@ function HeroSection() {
             </AnimateIn>
             <AnimateIn delay={340}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-                <button className="btn-lime">Start Free Diagnostic</button>
-                <button className="btn-ghost">
+                <button className="btn-lime" onClick={openDiagnostic}>Start Free Diagnostic</button>
+                <button className="btn-ghost" onClick={openWatch}>
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                     <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" />
                     <path d="M6.5 5.5L11 8l-4.5 2.5V5.5Z" fill="currentColor" />
@@ -565,7 +568,7 @@ function HeroSection() {
           </div>
 
           {/* Right: visual */}
-          <AnimateIn delay={200} className="max-sm:hidden">
+          <AnimateIn delay={200} className="r-hide-sm">
             <div style={{ position: 'relative', height: 460 }}>
               {/* AI orb avatar */}
               <div style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-55%)', width: 220, height: 220 }}>
@@ -694,7 +697,7 @@ function ProblemSolution() {
           </div>
         </AnimateIn>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }} className="max-sm:grid-cols-1">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }} className="r-grid-2">
           {/* Traditional */}
           <AnimateIn delay={100}>
             <div ref={tiltL} className="grad-border" style={{ padding: 32, filter: 'saturate(0.4)', opacity: 0.65 }}>
@@ -804,7 +807,7 @@ function TutorDemo() {
 
         {/* Demo mockup */}
         <AnimateIn delay={200}>
-          <div className="grad-border" style={{ padding: 24, display: 'grid', gridTemplateColumns: '200px 1fr 220px', gap: 20, minHeight: 360 }} key={activeTab}>
+          <div style={{ padding: 24, display: 'grid', gridTemplateColumns: '200px 1fr 220px', gap: 20, minHeight: 360 }} className="grad-border r-demo" key={activeTab}>
 
             {/* Avatar panel */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -948,6 +951,15 @@ function TutorDemo() {
 // ═══════════════════════════════════════════════════════════════════
 
 function FeaturesBento() {
+  const { openPractice, openNotes, openSessions, openBooking } = useApp()
+  const [fileErr, setFileErr] = useState('')
+  const readNotes = (f: File | undefined) => {
+    setFileErr('')
+    if (!f) return
+    if (!/\.(txt|md|csv)$/i.test(f.name) && !f.type.startsWith('text/')) return setFileErr('Upload a .txt or .md notes file. PDF and Word files are not supported yet.')
+    if (f.size > 500_000) return setFileErr('That file is over 500 KB. Try a shorter one.')
+    f.text().then(t => openNotes(f.name, t)).catch(() => setFileErr('Could not read that file.'))
+  }
   const mistakeTags = ['Concept gap', 'Careless error', 'Time pressure', 'Misread stem']
 
   const mentorAvatars = [
@@ -986,15 +998,15 @@ function FeaturesBento() {
             <div className="grad-border" style={{ padding: 32, height: '100%' }}>
               <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 12 }}>
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="8" stroke="#7C5CFF" strokeWidth="1.5"/><path d="M6 9l2 2 4-4" stroke="#7C5CFF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                <span style={{ fontFamily: 'Sora, sans-serif', fontWeight: 600, fontSize: 16, color: '#F5F7FF' }}>Unlimited Practice &amp; Mocks</span>
+                <span style={{ fontFamily: 'Sora, sans-serif', fontWeight: 600, fontSize: 16, color: '#F5F7FF' }}>Unlimited Practice & Mocks</span>
               </div>
               <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: '#9AA3B8', lineHeight: 1.6, marginBottom: 20 }}>Question-by-question AI coaching after each answer. No generic feedback — specific, contextual explanations.</p>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {['Quant', 'Verbal', 'Data Insights', 'RC', 'CR', 'SC', 'AWA'].map(tag => (
-                  <span key={tag} style={{
-                    fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '4px 10px', borderRadius: 999,
+                  <button key={tag} onClick={() => openPractice(tag)} style={{
+                    fontFamily: 'JetBrains Mono, monospace', fontSize: 11, padding: '6px 12px', borderRadius: 999, cursor: 'pointer',
                     background: 'rgba(124,92,255,0.1)', border: '1px solid rgba(124,92,255,0.25)', color: '#7C5CFF',
-                  }}>{tag}</span>
+                  }}>{tag}</button>
                 ))}
               </div>
             </div>
@@ -1058,11 +1070,17 @@ function FeaturesBento() {
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 12V4M5 7l4-4 4 4M3 14h12" stroke="#22D3EE" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 <span style={{ fontFamily: 'Sora, sans-serif', fontWeight: 600, fontSize: 15, color: '#F5F7FF' }}>Upload Your Material</span>
               </div>
-              <div style={{ border: '1.5px dashed rgba(255,255,255,0.12)', borderRadius: 16, padding: 24, textAlign: 'center', marginBottom: 14 }}>
-                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#9AA3B8' }}>Drag &amp; drop PDF, notes, or flashcards</div>
-                <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#7C5CFF', marginTop: 8, animation: 'thinking 2s infinite' }}>&gt; AI analyzing…</div>
-              </div>
-              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#9AA3B8', lineHeight: 1.6 }}>Tutori reads your notes and generates practice questions from them.</p>
+              <label
+                onDragOver={e => e.preventDefault()}
+                onDrop={e => { e.preventDefault(); readNotes(e.dataTransfer.files[0]) }}
+                style={{ display: 'block', border: '1.5px dashed rgba(255,255,255,0.12)', borderRadius: 16, padding: 24, textAlign: 'center', marginBottom: 14, cursor: 'pointer' }}>
+                <input type="file" accept=".txt,.md,.csv,text/plain" style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none' }}
+                  onChange={e => { readNotes(e.target.files?.[0]); e.target.value = '' }} />
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#F5F7FF' }}>Drop a .txt or .md notes file, or click to choose</div>
+                <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#7C5CFF', marginTop: 8 }}>&gt; stays in your browser</div>
+              </label>
+              <div role="alert" style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#FF8FA3', marginBottom: 8, minHeight: fileErr ? 16 : 0 }}>{fileErr}</div>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#9AA3B8', lineHeight: 1.6 }}>Turns the sentences in your notes into fill-in-the-blank practice questions.</p>
             </div>
           </AnimateIn>
 
@@ -1147,7 +1165,7 @@ function FeaturesBento() {
                     }}>{a.init}</div>
                   ))}
                 </div>
-                <button className="btn-primary" style={{ fontSize: 13, padding: '10px 20px' }}>Book a session</button>
+                <button className="btn-primary" style={{ fontSize: 13, padding: '10px 20px' }} onClick={() => openBooking(0)}>Book a session</button>
               </div>
             </div>
           </AnimateIn>
@@ -1168,7 +1186,7 @@ function HowItWorks() {
   const steps = [
     {
       n: '01', icon: '⊙', title: 'Assess', color: '#7C5CFF',
-      desc: 'A 30-minute diagnostic pinpoints every gap across all GMAT/GRE domains. We go deeper than a practice test.',
+      desc: 'A short diagnostic pinpoints every gap across all GMAT/GRE domains. We go deeper than a practice test.',
     },
     {
       n: '02', icon: '▶', title: 'Teach', color: '#22D3EE',
@@ -1199,7 +1217,7 @@ function HowItWorks() {
           </div>
         </AnimateIn>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2px 1fr', gap: '0 40px', maxWidth: 800, margin: '0 auto' }} className="max-sm:grid-cols-1">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2px 1fr', gap: '0 40px', maxWidth: 800, margin: '0 auto' }} className="r-hiw">
           {/* Steps column */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             {steps.map((s, i) => {
@@ -1236,7 +1254,7 @@ function HowItWorks() {
           </div>
 
           {/* Center line */}
-          <div style={{ position: 'relative' }} className="max-sm:hidden">
+          <div style={{ position: 'relative' }} className="r-hide-sm">
             <div style={{ position: 'absolute', inset: '0 0', background: 'rgba(255,255,255,0.07)', borderRadius: 999 }} />
             <div style={{
               position: 'absolute', top: 0, left: 0, right: 0, borderRadius: 999,
@@ -1248,7 +1266,7 @@ function HowItWorks() {
           </div>
 
           {/* Right column: decorative */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }} className="max-sm:hidden">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }} className="r-hide-sm">
             {steps.map((s, i) => {
               const stepProgress = Math.max(0, Math.min(1, (progress - i * 0.22) / 0.22))
               return (
@@ -1273,9 +1291,13 @@ function HowItWorks() {
 // ═══════════════════════════════════════════════════════════════════
 
 function ScoreDashboard() {
+  const { diagnostic, openDiagnostic } = useApp()
   const [target, setTarget] = useState(720)
+  const current = diagnostic?.score ?? 600
+  const lo = Math.min(600, current)
+  const catColors: Record<string, string> = { Quant: '#7C5CFF', Verbal: '#22D3EE', 'Data Insights': '#FFD93D', Logic: '#B6FF3B' }
 
-  const weakAreas = [
+  const sampleAreas = [
     { subject: 'Data Sufficiency', pct: 0.45, color: '#FF6B6B' },
     { subject: 'Reading Comprehension', pct: 0.62, color: '#FFD93D' },
     { subject: 'Critical Reasoning', pct: 0.71, color: '#22D3EE' },
@@ -1283,7 +1305,11 @@ function ScoreDashboard() {
     { subject: 'Sentence Correction', pct: 0.68, color: '#B6FF3B' },
   ]
 
-  const weeksNeeded = Math.round(((target - 600) / 15) + 6)
+  const weakAreas = diagnostic
+    ? Object.entries(diagnostic.cats).map(([subject, pct]) => ({ subject, pct: Math.max(pct, 0.05), color: catColors[subject] ?? '#7C5CFF' }))
+    : sampleAreas
+
+  const weeksNeeded = Math.max(1, Math.round(((target - current) / 15) + 6))
   const hoursPerWeek = target > 720 ? 14 : target > 690 ? 11 : 8
 
   return (
@@ -1295,8 +1321,16 @@ function ScoreDashboard() {
           <div style={{ textAlign: 'center', marginBottom: 60 }}>
             <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#7C5CFF', letterSpacing: '0.08em', marginBottom: 16, textTransform: 'uppercase' }}>Live dashboard</p>
             <h2 style={{ fontFamily: 'Sora, sans-serif', fontWeight: 700, fontSize: 'clamp(28px,3.5vw,52px)', color: '#F5F7FF', letterSpacing: '-0.025em', lineHeight: 1.1 }}>
-              Score projection &amp; roadmap
+              Score projection & roadmap
             </h2>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: '#9AA3B8', marginTop: 14 }}>
+              {diagnostic
+                ? `Based on your diagnostic: ${diagnostic.right} of ${diagnostic.total} correct.`
+                : 'Sample numbers shown. Take the free diagnostic to see yours.'}
+              {' '}<button onClick={openDiagnostic} style={{ background: 'none', border: 0, color: '#B6FF3B', cursor: 'pointer', fontSize: 14, fontFamily: 'Inter, sans-serif', textDecoration: 'underline', padding: 0 }}>
+                {diagnostic ? 'Retake' : 'Start'}
+              </button>
+            </p>
           </div>
         </AnimateIn>
 
@@ -1311,10 +1345,10 @@ function ScoreDashboard() {
             </div>
             <div style={{ flex: 1, minWidth: 200 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-                <MonoLabel>600</MonoLabel>
+                <MonoLabel>{lo}</MonoLabel>
                 <MonoLabel>805</MonoLabel>
               </div>
-              <input type="range" min={600} max={805} step={5} value={target} onChange={e => setTarget(Number(e.target.value))}
+              <input type="range" aria-label="Target score" min={lo} max={805} step={5} value={target} onChange={e => setTarget(Number(e.target.value))}
                 style={{ accentColor: '#7C5CFF' }}
               />
             </div>
@@ -1331,16 +1365,16 @@ function ScoreDashboard() {
           </div>
         </AnimateIn>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }} className="max-sm:grid-cols-1">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }} className="r-grid-3">
           {/* Gauge */}
           <AnimateIn delay={200}>
             <div className="grad-border" style={{ padding: 28, textAlign: 'center' }}>
               <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#9AA3B8', marginBottom: 16 }}>&gt; score.projection()</div>
-              <ScoreGauge score={Math.round(600 + (target - 600) * 0.85)} />
+              <ScoreGauge score={Math.round(current + (target - current) * 0.85)} />
               <div style={{ display: 'flex', gap: 20, justifyContent: 'center', marginTop: 16 }}>
                 <div>
                   <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: '#9AA3B8' }}>Current</div>
-                  <div style={{ fontFamily: 'Sora, sans-serif', fontWeight: 700, fontSize: 18, color: '#F5F7FF' }}>600</div>
+                  <div style={{ fontFamily: 'Sora, sans-serif', fontWeight: 700, fontSize: 18, color: '#F5F7FF' }}>{current}</div>
                 </div>
                 <div style={{ width: 1, background: 'rgba(255,255,255,0.08)' }} />
                 <div>
@@ -1355,7 +1389,7 @@ function ScoreDashboard() {
           <AnimateIn delay={300}>
             <div className="grad-border" style={{ padding: 28 }}>
               <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#9AA3B8', marginBottom: 16 }}>&gt; score.trajectory()</div>
-              <ScoreLineChart target={target} />
+              <ScoreLineChart target={target} baseline={current} />
               <div style={{ display: 'flex', gap: 16, marginTop: 12, flexWrap: 'wrap' }}>
                 <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                   <div style={{ width: 16, height: 2, background: 'linear-gradient(to right, #7C5CFF, #22D3EE)', borderRadius: 999 }} />
@@ -1391,16 +1425,13 @@ function ScoreDashboard() {
 // ═══════════════════════════════════════════════════════════════════
 
 function Mentorship() {
-  const mentors = [
-    { name: 'Arjun Rao', cred: 'GMAT 780', school: 'Columbia Business School', tag: 'Quant specialist' },
-    { name: 'Maya Kline', cred: 'GRE 335', school: 'Harvard Graduate School', tag: 'Verbal &amp; AWA' },
-    { name: 'Jonas Lu', cred: 'GMAT 760', school: '5+ yrs tutoring', tag: 'Strategy &amp; timing' },
-  ]
+  const { openBooking, openSessions } = useApp()
+  const mentors = MENTORS
 
   return (
     <section id="mentors" style={{ padding: 'clamp(80px,10vw,160px) clamp(24px,8vw,120px)', position: 'relative', overflow: 'hidden' }}>
       <div style={{ maxWidth: 1440, margin: '0 auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 60, alignItems: 'center' }} className="max-sm:grid-cols-1">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 60, alignItems: 'center' }} className="r-grid-2">
           <AnimateIn>
             <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#B6FF3B', letterSpacing: '0.08em', marginBottom: 20, textTransform: 'uppercase' }}>AI + Human</p>
             <h2 style={{ fontFamily: 'Sora, sans-serif', fontWeight: 700, fontSize: 'clamp(28px,3.5vw,52px)', color: '#F5F7FF', letterSpacing: '-0.025em', lineHeight: 1.08, marginBottom: 24 }}>
@@ -1410,15 +1441,15 @@ function Mentorship() {
               Aria handles 95% of your prep 24/7. When you hit a wall — a complex strategy question, a mock debrief, or a crisis of confidence — a human expert steps in. Book a 50-minute session. Walk away with clarity.
             </p>
             <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-              <button className="btn-primary">Browse mentors</button>
-              <button className="btn-ghost">How sessions work</button>
+              <button className="btn-primary" onClick={() => openBooking(0)}>Book a mentor</button>
+              <button className="btn-ghost" onClick={openSessions}>How sessions work</button>
             </div>
           </AnimateIn>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {mentors.map((m, i) => (
               <AnimateIn key={i} delay={i * 130}>
-                <MentorCard mentor={m} />
+                <MentorCard mentor={m} onBook={() => openBooking(i)} />
               </AnimateIn>
             ))}
           </div>
@@ -1504,6 +1535,7 @@ function Testimonials() {
 // ═══════════════════════════════════════════════════════════════════
 
 function Pricing() {
+  const { openDiagnostic, openSignup } = useApp()
   const [annual, setAnnual] = useState(false)
 
   const plans = [
@@ -1512,7 +1544,7 @@ function Pricing() {
       price: 0,
       annualPrice: 0,
       desc: 'Start here. No credit card.',
-      features: ['Full 30-min diagnostic test', 'Score projection report', 'Weakness summary', '10 AI-coached practice Qs', 'One roadmap preview'],
+      features: ['Free diagnostic test', 'Score projection report', 'Weakness summary', '10 AI-coached practice Qs', 'One roadmap preview'],
       cta: 'Start free',
       highlight: false,
     },
@@ -1572,7 +1604,7 @@ function Pricing() {
           </div>
         </AnimateIn>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20, alignItems: 'start' }} className="max-sm:grid-cols-1">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20, alignItems: 'start' }} className="r-grid-3">
           {plans.map((p, i) => (
             <AnimateIn key={p.name} delay={i * 120}>
               <div className={p.highlight ? 'accent-border' : 'grad-border'} style={{
@@ -1599,7 +1631,8 @@ function Pricing() {
                   </div>
                 )}
                 <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#9AA3B8', marginBottom: 24 }}>{p.desc}</p>
-                <button className={p.highlight ? 'btn-primary' : 'btn-ghost'} style={{ width: '100%', justifyContent: 'center', marginBottom: 28 }}>{p.cta}</button>
+                <button className={p.highlight ? 'btn-primary' : 'btn-ghost'} style={{ width: '100%', justifyContent: 'center', marginBottom: 28 }}
+                  onClick={() => p.price === 0 ? openDiagnostic() : openSignup(p.name, annual ? p.annualPrice : p.price, annual)}>{p.cta}</button>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {p.features.map((f, j) => (
                     <div key={j} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
@@ -1634,11 +1667,11 @@ function FAQ() {
     },
     {
       q: 'Can I upload my own study notes?',
-      a: "Absolutely. Upload PDFs, Word docs, or typed notes and Tutori's AI will read them, extract key concepts, and generate targeted practice questions based on your material. Works for official prep books, MBA materials, or scanned handwritten notes.",
+      a: "Yes. Upload a .txt or .md file of your notes and Tutori turns your own sentences into fill-in-the-blank practice questions, right in your browser. PDF and Word support is planned.",
     },
     {
       q: 'How accurate are the score projections?',
-      a: 'Our score projections are based on a calibration model trained on thousands of student trajectories. In internal analysis, 82% of students scored within ±20 points of their projected score. Projections update after every session as the AI refines its picture of your performance.',
+      a: 'The free diagnostic gives a rough estimate from a short sample of questions, so treat it as a starting point rather than a prediction of your official score. The more you practise, the better the picture of where you stand.',
     },
     {
       q: 'Do I get access to real people?',
@@ -1668,6 +1701,7 @@ function FAQ() {
               <div style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
                 <button
                   onClick={() => setOpen(open === i ? null : i)}
+                  aria-expanded={open === i}
                   style={{
                     width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                     padding: '22px 0', background: 'none', border: 'none', cursor: 'pointer',
@@ -1708,7 +1742,9 @@ function FAQ() {
 // ═══════════════════════════════════════════════════════════════════
 
 function FinalCTA() {
+  const { saveEmail, openDiagnostic } = useApp()
   const [email, setEmail] = useState('')
+  const [saveFailed, setSaveFailed] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [ref, inView] = useInView(0.2)
 
@@ -1738,7 +1774,7 @@ function FinalCTA() {
         </AnimateIn>
         <AnimateIn delay={200}>
           <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 18, color: '#9AA3B8', lineHeight: 1.65, marginBottom: 40 }}>
-            Take the free 30-minute diagnostic. Get a full score projection, a personalized roadmap, and your first lesson — today.
+            Take the free diagnostic. Get a projected score, your weakest areas and a two-week starting plan, today.
           </p>
         </AnimateIn>
         <AnimateIn delay={300}>
@@ -1748,14 +1784,15 @@ function FinalCTA() {
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 9l4 4 6-6" stroke="#B6FF3B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </div>
               <span style={{ fontFamily: 'Sora, sans-serif', fontWeight: 600, fontSize: 16, color: '#F5F7FF' }}>You're in!</span>
-              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: '#9AA3B8' }}>Check your inbox for the diagnostic link.</span>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: '#9AA3B8' }}>{saveFailed ? 'Could not save your email on this device.' : 'Your email is saved on this device.'} You can take the diagnostic right now.</span>
+              <button className="btn-lime" style={{ marginTop: 6 }} onClick={openDiagnostic}>Start Free Diagnostic</button>
             </div>
           ) : (
-            <form onSubmit={e => { e.preventDefault(); if (email) setSubmitted(true) }}
+            <form onSubmit={e => { e.preventDefault(); if (email) { setSaveFailed(!saveEmail(email.trim())); setSubmitted(true) } }}
               style={{ display: 'flex', gap: 10, maxWidth: 480, margin: '0 auto', flexWrap: 'wrap', justifyContent: 'center' }}>
               <input
                 type="email" value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="Enter your email address"
+                placeholder="Enter your email address" aria-label="Email address" autoComplete="email"
                 required
                 style={{
                   flex: 1, minWidth: 240, padding: '13px 20px', borderRadius: 999,
@@ -1780,17 +1817,30 @@ function FinalCTA() {
 // ═══════════════════════════════════════════════════════════════════
 
 function Footer() {
-  const links = {
-    Product: ['How it works', 'Features', 'Score Projection', 'Pricing', 'Compare plans'],
-    Resources: ['GMAT Guide', 'GRE Guide', 'Practice Questions', 'Score Calculator', 'Blog'],
-    Company: ['About', 'Careers', 'Press', 'Privacy', 'Terms'],
-    Support: ['Help Center', 'Contact Us', 'Mentor Portal', 'System Status'],
+  const { openDiagnostic, openBooking, openWatch } = useApp()
+  const links: Record<string, { label: string; href?: string; onClick?: () => void }[]> = {
+    Product: [
+      { label: 'How it works', href: '#how-it-works' },
+      { label: 'Features', href: '#features-grid' },
+      { label: 'Score projection', href: '#roadmap' },
+      { label: 'Pricing', href: '#pricing' },
+    ],
+    'Try it': [
+      { label: 'Free diagnostic', onClick: openDiagnostic },
+      { label: 'Watch the tutor', onClick: openWatch },
+      { label: 'Book a mentor', onClick: () => openBooking(0) },
+    ],
+    Help: [
+      { label: 'FAQ', href: '#faq' },
+      { label: 'Mentors', href: '#mentors' },
+    ],
   }
+  const linkStyle = { fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#9AA3B8', textDecoration: 'none', background: 'none', border: 0, padding: 0, cursor: 'pointer', textAlign: 'left' as const }
 
   return (
     <footer style={{ borderTop: '1px solid rgba(255,255,255,0.07)', padding: 'clamp(60px,6vw,100px) clamp(24px,8vw,120px) 40px' }}>
       <div style={{ maxWidth: 1440, margin: '0 auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr repeat(4, 1fr)', gap: 48, marginBottom: 64 }} className="max-sm:grid-cols-2 max-md:grid-cols-2">
+        <div style={{ display: 'grid', gridTemplateColumns: '1.6fr repeat(3, 1fr)', gap: 48, marginBottom: 64 }} className="r-footer">
           {/* Brand */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
@@ -1803,37 +1853,16 @@ function Footer() {
             <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: '#9AA3B8', lineHeight: 1.7, maxWidth: 240, marginBottom: 24 }}>
               Built with AI. Guided by humans.
             </p>
-            {/* Social icons */}
-            <div style={{ display: 'flex', gap: 12 }}>
-              {[
-                { label: 'X / Twitter', path: 'M4 4l8 8M12 4L4 12' },
-                { label: 'LinkedIn', path: 'M3 7h2v7H3zM4 5a1 1 0 110-2 1 1 0 010 2zM9 7h2v1.5A2.5 2.5 0 0114 11v3h-2v-3a1 1 0 00-2 0v3H8V7z' },
-                { label: 'YouTube', path: 'M8 11l5-3-5-3v6z M2 6c0-1.1.9-2 2-2h12a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6z' },
-              ].map(s => (
-                <a key={s.label} href="#" aria-label={s.label} style={{
-                  width: 36, height: 36, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.1)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: 'rgba(255,255,255,0.04)', transition: 'all 0.2s ease',
-                }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(124,92,255,0.4)'; (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(124,92,255,0.1)' }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(255,255,255,0.1)'; (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.04)' }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d={s.path} stroke="#9AA3B8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                </a>
-              ))}
-            </div>
           </div>
 
           {Object.entries(links).map(([col, items]) => (
             <div key={col}>
               <div style={{ fontFamily: 'Sora, sans-serif', fontWeight: 600, fontSize: 13, color: '#F5F7FF', marginBottom: 16 }}>{col}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {items.map(item => (
-                  <a key={item} href="#" style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#9AA3B8', textDecoration: 'none', transition: 'color 0.2s ease' }}
-                    onMouseEnter={e => (e.currentTarget.style.color = '#F5F7FF')}
-                    onMouseLeave={e => (e.currentTarget.style.color = '#9AA3B8')}>
-                    {item}
-                  </a>
+                {items.map(item => item.href ? (
+                  <a key={item.label} href={item.href} style={linkStyle}>{item.label}</a>
+                ) : (
+                  <button key={item.label} onClick={item.onClick} style={linkStyle}>{item.label}</button>
                 ))}
               </div>
             </div>
@@ -1842,7 +1871,7 @@ function Footer() {
 
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: 28, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
           <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#9AA3B8' }}>
-            © 2026 Tutori AI Inc. All rights reserved.
+            © 2026 Tutori AI
           </span>
           <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#9AA3B8', opacity: 0.7 }}>
             Built with AI. Guided by humans.
@@ -1859,6 +1888,7 @@ function Footer() {
 
 export default function App() {
   return (
+    <AppProvider>
     <div style={{ minHeight: '100vh', overflowX: 'hidden' }}>
       <Navbar />
       <main>
@@ -1876,5 +1906,6 @@ export default function App() {
       </main>
       <Footer />
     </div>
+    </AppProvider>
   )
 }
