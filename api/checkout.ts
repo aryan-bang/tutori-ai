@@ -1,4 +1,4 @@
-import { dodo, json, productId, supabaseAdmin, type Billing, type PlanSlug } from './_lib'
+import { dodo, json, productId, supabaseAdmin, type Billing, type PlanSlug } from './_lib.js'
 
 // POST /api/checkout  { plan: 'pro' | 'mentor', billing: 'monthly' | 'annual' }
 // Header: Authorization: Bearer <supabase access token>

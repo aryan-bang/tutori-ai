@@ -105,7 +105,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       })
       const body = await res.json().catch(() => ({}))
       if (res.ok && body.url) { window.location.href = body.url; return }
-      notify({ title: 'Checkout unavailable', body: body.error ?? 'Something went wrong. Please try again.' })
+      notify({ title: 'Checkout unavailable', body: body.error ?? `The server returned an unexpected reply (status ${res.status}). Please try again, and tell us if it keeps happening.` })
     } catch {
       notify({ title: 'Checkout unavailable', body: 'Could not reach the server. Check your connection and try again.' })
     }

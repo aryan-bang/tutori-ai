@@ -1,4 +1,4 @@
-import { dodo, json, planFromProduct, supabaseAdmin } from './_lib'
+import { dodo, json, planFromProduct, supabaseAdmin } from './_lib.js'
 
 // Dodo calls this after a payment or subscription change. This, not the browser
 // redirect, is what grants access.
