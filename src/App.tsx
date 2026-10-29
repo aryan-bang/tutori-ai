@@ -404,7 +404,7 @@ function Navbar() {
     return () => window.removeEventListener('scroll', h)
   }, [])
 
-  const { openDiagnostic } = useApp()
+  const { openDiagnostic, authEnabled, userEmail, openAuth, openAccount } = useApp()
   const navLinks = ['How it works', 'Features', 'Mentors', 'Pricing']
 
   return (
@@ -447,9 +447,16 @@ function Navbar() {
           ))}
         </div>
 
-        <button className="btn-lime nav-cta" style={{ fontSize: 13, padding: '10px 20px' }} onClick={openDiagnostic}>
-          Start Free Diagnostic
-        </button>
+        <div className="nav-cta" style={{ alignItems: 'center', gap: 10 }}>
+          {authEnabled && (
+            <button className="btn-ghost" style={{ fontSize: 13, padding: '9px 18px' }} onClick={userEmail ? openAccount : openAuth}>
+              {userEmail ? 'Account' : 'Log in'}
+            </button>
+          )}
+          <button className="btn-lime" style={{ fontSize: 13, padding: '10px 20px' }} onClick={openDiagnostic}>
+            Start Free Diagnostic
+          </button>
+        </div>
 
         {/* Mobile toggle */}
         <button onClick={() => setMenuOpen(o => !o)} className="nav-burger" aria-label="Toggle menu" aria-expanded={menuOpen}
@@ -477,7 +484,12 @@ function Navbar() {
                 {l}
               </a>
             ))}
-            <button className="btn-lime" style={{ marginTop: 16, justifyContent: 'center' }} onClick={() => { setMenuOpen(false); openDiagnostic() }}>Start Free Diagnostic</button>
+            {authEnabled && (
+              <button className="btn-ghost" style={{ marginTop: 16, justifyContent: 'center' }} onClick={() => { setMenuOpen(false); userEmail ? openAccount() : openAuth() }}>
+                {userEmail ? 'Account' : 'Log in'}
+              </button>
+            )}
+            <button className="btn-lime" style={{ marginTop: 12, justifyContent: 'center' }} onClick={() => { setMenuOpen(false); openDiagnostic() }}>Start Free Diagnostic</button>
           </div>
         </div>
       )}
@@ -951,11 +963,12 @@ function TutorDemo() {
 // ═══════════════════════════════════════════════════════════════════
 
 function FeaturesBento() {
-  const { openPractice, openNotes, openSessions, openBooking } = useApp()
+  const { openPractice, openNotes, openSessions, openBooking, canUseNotes } = useApp()
   const [fileErr, setFileErr] = useState('')
   const readNotes = (f: File | undefined) => {
     setFileErr('')
     if (!f) return
+    if (!canUseNotes()) return
     if (!/\.(txt|md|csv)$/i.test(f.name) && !f.type.startsWith('text/')) return setFileErr('Upload a .txt or .md notes file. PDF and Word files are not supported yet.')
     if (f.size > 500_000) return setFileErr('That file is over 500 KB. Try a shorter one.')
     f.text().then(t => openNotes(f.name, t)).catch(() => setFileErr('Could not read that file.'))
@@ -1535,7 +1548,7 @@ function Testimonials() {
 // ═══════════════════════════════════════════════════════════════════
 
 function Pricing() {
-  const { openDiagnostic, openSignup } = useApp()
+  const { openDiagnostic, openSignup, startCheckout, authEnabled, planName } = useApp()
   const [annual, setAnnual] = useState(false)
 
   const plans = [
@@ -1632,7 +1645,11 @@ function Pricing() {
                 )}
                 <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#9AA3B8', marginBottom: 24 }}>{p.desc}</p>
                 <button className={p.highlight ? 'btn-primary' : 'btn-ghost'} style={{ width: '100%', justifyContent: 'center', marginBottom: 28 }}
-                  onClick={() => p.price === 0 ? openDiagnostic() : openSignup(p.name, annual ? p.annualPrice : p.price, annual)}>{p.cta}</button>
+                  onClick={() => {
+                    if (p.price === 0) return openDiagnostic()
+                    if (authEnabled) return startCheckout(p.name === 'Pro' ? 'pro' : 'mentor', annual)
+                    openSignup(p.name, annual ? p.annualPrice : p.price, annual)
+                  }}>{planName === p.name ? 'Your current plan' : p.cta}</button>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {p.features.map((f, j) => (
                     <div key={j} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>

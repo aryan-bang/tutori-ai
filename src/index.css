@@ -372,7 +372,7 @@ input[type='range']::-webkit-slider-thumb:hover {
 
 /* ── Responsive layout (!important so these beat inline grid/display styles) ── */
 .nav-links { display: flex !important; }
-.nav-cta { display: inline-flex !important; }
+.nav-cta { display: flex !important; }
 .nav-burger { display: none !important; }
 .r-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
 .r-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
