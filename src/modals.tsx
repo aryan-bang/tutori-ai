@@ -493,3 +493,87 @@ export function SessionsModal({ onClose, onBook }: { onClose: () => void; onBook
     </Modal>
   )
 }
+
+// ═══════════════════════════════════════════════════════════════════
+// ACCOUNT, SIGN-IN AND NOTICES
+// ═══════════════════════════════════════════════════════════════════
+
+export function NoticeModal({ title, body, action, onAction, onClose }: { title: string; body: string; action?: string; onAction?: () => void; onClose: () => void }) {
+  return (
+    <Modal onClose={onClose} label={title}>
+      <Title sub={body}>{title}</Title>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        {action && <button className="btn-primary" onClick={onAction}>{action}</button>}
+        <button className="btn-ghost" onClick={onClose}>Close</button>
+      </div>
+    </Modal>
+  )
+}
+
+export function AuthModal({ onClose, onSubmit, reason }: {
+  onClose: () => void
+  onSubmit: (mode: 'signin' | 'signup', email: string, password: string) => Promise<string | null>
+  reason?: string
+}) {
+  const [mode, setMode] = useState<'signin' | 'signup'>('signup')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [err, setErr] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [sent, setSent] = useState(false)
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault()
+    if (!emailOk(email.trim())) return setErr('Enter a valid email address.')
+    if (password.length < 8) return setErr('Use a password of at least 8 characters.')
+    setBusy(true); setErr('')
+    const problem = await onSubmit(mode, email.trim(), password)
+    setBusy(false)
+    if (problem === 'CONFIRM') setSent(true)
+    else if (problem) setErr(problem)
+  }
+
+  if (sent) {
+    return (
+      <Modal onClose={onClose} label="Check your email">
+        <Title sub={`We sent a confirmation link to ${email.trim()}. Open it, then come back and sign in.`}>Check your email</Title>
+        <button className="btn-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => { setSent(false); setMode('signin') }}>Go to sign in</button>
+      </Modal>
+    )
+  }
+
+  return (
+    <Modal onClose={onClose} label={mode === 'signup' ? 'Create your account' : 'Sign in'}>
+      <Title sub={reason ?? 'Your plan and progress follow your account.'}>{mode === 'signup' ? 'Create your account' : 'Sign in'}</Title>
+      <form onSubmit={submit} noValidate>
+        <Field id="au-email" label="EMAIL"><input id="au-email" type="email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@email.com" /></Field>
+        <Field id="au-pass" label="PASSWORD"><input id="au-pass" type="password" autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="At least 8 characters" /></Field>
+        <div className="m-err" role="alert">{err}</div>
+        <button className="btn-primary" type="submit" disabled={busy} style={{ width: '100%', justifyContent: 'center' }}>{busy ? 'One moment…' : mode === 'signup' ? 'Create account' : 'Sign in'}</button>
+      </form>
+      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#9AA3B8', marginTop: 16, textAlign: 'center' }}>
+        {mode === 'signup' ? 'Already have an account? ' : 'New here? '}
+        <button type="button" onClick={() => { setMode(mode === 'signup' ? 'signin' : 'signup'); setErr('') }}
+          style={{ background: 'none', border: 0, padding: 0, color: '#B6FF3B', cursor: 'pointer', textDecoration: 'underline', font: 'inherit' }}>
+          {mode === 'signup' ? 'Sign in' : 'Create an account'}
+        </button>
+      </p>
+    </Modal>
+  )
+}
+
+export function AccountModal({ email, plan, onSignOut, onClose }: { email: string; plan: string | null; onSignOut: () => void; onClose: () => void }) {
+  return (
+    <Modal onClose={onClose} label="Your account">
+      <Title sub={email}>Your account</Title>
+      <div className="m-inset" style={{ marginBottom: 18 }}>
+        <Mono>PLAN</Mono>
+        <p style={{ fontFamily: SORA, fontWeight: 700, fontSize: 18, color: plan ? '#B6FF3B' : '#F5F7FF', marginTop: 6 }}>{plan ?? 'Free'}</p>
+      </div>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <button className="btn-ghost" onClick={onSignOut}>Sign out</button>
+        <button className="btn-ghost" onClick={onClose}>Close</button>
+      </div>
+    </Modal>
+  )
+}
