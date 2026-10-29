@@ -36,6 +36,8 @@ export async function POST(request: Request) {
     return json({ url: session.checkout_url })
   } catch (e) {
     console.error('checkout failed', e)
-    return json({ error: 'Could not start checkout. Please try again.' }, 502)
+    // Only the HTTP status is shown to the browser; the full error stays in the server logs.
+    const status = (e as { status?: number })?.status
+    return json({ error: `Could not start checkout${status ? ` (payment provider replied ${status})` : ''}. Please try again.` }, 502)
   }
 }
