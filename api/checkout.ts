@@ -1,4 +1,4 @@
-import { dodo, json, productId, supabaseAdmin, type Billing, type PlanSlug } from './_lib.js'
+import { dodo, getUser, json, productId, type Billing, type PlanSlug } from './_lib.js'
 
 // POST /api/checkout  { plan: 'pro' | 'mentor', billing: 'monthly' | 'annual' }
 // Header: Authorization: Bearer <supabase access token>
@@ -10,9 +10,8 @@ export async function POST(request: Request) {
   const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
   if (!token) return json({ error: 'Please sign in first.' }, 401)
 
-  const { data, error } = await supabaseAdmin().auth.getUser(token)
-  const user = data.user
-  if (error || !user?.email) return json({ error: 'Please sign in again.' }, 401)
+  const user = await getUser(token)
+  if (!user?.email) return json({ error: 'Please sign in again.' }, 401)
 
   let body: { plan?: string; billing?: string }
   try { body = await request.json() } catch { return json({ error: 'Bad request.' }, 400) }
