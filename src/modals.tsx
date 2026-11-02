@@ -562,7 +562,9 @@ export function AuthModal({ onClose, onSubmit, reason }: {
   )
 }
 
-export function AccountModal({ email, plan, onSignOut, onClose }: { email: string; plan: string | null; onSignOut: () => void; onClose: () => void }) {
+export function AccountModal({ email, plan, onSignOut, onBilling, onClose }: { email: string; plan: string | null; onSignOut: () => void; onBilling: () => Promise<string | null>; onClose: () => void }) {
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
   return (
     <Modal onClose={onClose} label="Your account">
       <Title sub={email}>Your account</Title>
@@ -570,6 +572,14 @@ export function AccountModal({ email, plan, onSignOut, onClose }: { email: strin
         <Mono>PLAN</Mono>
         <p style={{ fontFamily: SORA, fontWeight: 700, fontSize: 18, color: plan ? '#B6FF3B' : '#F5F7FF', marginTop: 6 }}>{plan ?? 'Free'}</p>
       </div>
+      {plan && (
+        <div style={{ marginBottom: 14 }}>
+          <button className="btn-primary" disabled={busy} onClick={async () => { setBusy(true); setErr(''); const e = await onBilling(); setBusy(false); if (e) setErr(e) }}>
+            {busy ? 'Opening…' : 'Manage billing or cancel'}
+          </button>
+          <div className="m-err" role="alert" style={{ marginTop: 8 }}>{err}</div>
+        </div>
+      )}
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         <button className="btn-ghost" onClick={onSignOut}>Sign out</button>
         <button className="btn-ghost" onClick={onClose}>Close</button>

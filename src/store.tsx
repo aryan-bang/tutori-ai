@@ -155,6 +155,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(id)
   }, [user, loadPlan, notify])
 
+  // Opens Dodo's billing portal, where customers cancel or change their plan.
+  const openBilling = async (): Promise<string | null> => {
+    if (!supabase) return 'Billing is not available.'
+    const { data } = await supabase.auth.getSession()
+    const token = data.session?.access_token
+    if (!token) return 'Please sign in again.'
+    try {
+      const res = await fetch('/api/portal', { method: 'POST', headers: { authorization: `Bearer ${token}` } })
+      const body = await res.json().catch(() => ({}))
+      if (res.ok && body.url) { window.location.href = body.url; return null }
+      return body.error ?? `Something went wrong (status ${res.status}).`
+    } catch {
+      return 'Could not reach the server.'
+    }
+  }
+
   const signIn = async (mode: 'signin' | 'signup', email: string, password: string) => {
     if (!supabase) return 'Accounts are not available yet.'
     if (mode === 'signup') {
@@ -224,7 +240,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       {overlay?.kind === 'sessions' && <SessionsModal onClose={close} onBook={() => setOverlay({ kind: 'booking', mentor: 0 })} />}
       {overlay?.kind === 'auth' && <AuthModal onClose={() => { pending.current = null; close() }} onSubmit={signIn} reason={overlay.reason} />}
       {overlay?.kind === 'account' && user && (
-        <AccountModal email={user.email} plan={ctx.planName} onClose={close}
+        <AccountModal email={user.email} plan={ctx.planName} onClose={close} onBilling={openBilling}
           onSignOut={() => { supabase?.auth.signOut(); close() }} />
       )}
       {overlay?.kind === 'notice' && (

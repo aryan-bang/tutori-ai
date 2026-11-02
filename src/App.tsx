@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { AppProvider, useApp } from './store'
+import { LegalPage, isLegalPath } from './legal'
+import { SUPPORT_EMAIL } from './data'
 
 // ═══════════════════════════════════════════════════════════════════
 // HOOKS
@@ -333,18 +335,6 @@ function WaveformSVG() {
   )
 }
 
-function StatCount({ n, suffix, label, enabled }: { n: number; suffix: string; label: string; unit: string; enabled: boolean }) {
-  const count = useCountUp(n, enabled, 2000)
-  return (
-    <div>
-      <div style={{ fontFamily: 'Sora, sans-serif', fontWeight: 700, fontSize: 28, color: '#F5F7FF', letterSpacing: '-0.03em', lineHeight: 1 }}>
-        {n >= 1000 ? `${Math.round(count / 1000)}k` : count}{suffix}
-      </div>
-      <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#9AA3B8', marginTop: 4 }}>{label}</div>
-    </div>
-  )
-}
-
 function WeaknessBar({ subject, pct, color, index }: { subject: string; pct: number; color: string; index: number }) {
   const [ref, inView] = useInView()
   return (
@@ -481,11 +471,6 @@ function HeroSection() {
   const t1 = useTypewriter("Let's break this down step by step…", inView, 40, 800)
   const t2 = useTypewriter('Want me to explain it another way?', inView, 38, 3500)
 
-  const stats = [
-    { n: 50000, suffix: '+', label: 'Practice questions', unit: '' },
-    { n: 500, suffix: '+', label: 'Unlimited mocks', unit: '' },
-    { n: 24, suffix: '/7', label: 'AI tutoring', unit: '' },
-  ]
 
   return (
     <section ref={ref} style={{ position: 'relative', overflow: 'hidden', paddingTop: 140, paddingBottom: 100 }}>
@@ -529,7 +514,7 @@ function HeroSection() {
             </AnimateIn>
             <AnimateIn delay={220}>
               <p style={{ fontSize: 18, color: '#9AA3B8', lineHeight: 1.65, marginBottom: 36, fontFamily: 'Inter, sans-serif', maxWidth: 480 }}>
-                An AI tutor that appears on screen, talks you through concepts, draws on a whiteboard, and adapts to every mistake you make.
+                An AI study partner for the GMAT and GRE: a free diagnostic, practice questions with step-by-step explanations, and a score planner. A voice-and-whiteboard tutor is in development.
               </p>
             </AnimateIn>
             <AnimateIn delay={340}>
@@ -545,12 +530,6 @@ function HeroSection() {
               </div>
             </AnimateIn>
 
-            {/* Trust row */}
-            <AnimateIn delay={500}>
-              <div style={{ display: 'flex', gap: 32, marginTop: 52, flexWrap: 'wrap' }}>
-                {stats.map((s, i) => <StatCount key={i} {...s} enabled={inView} />)}
-              </div>
-            </AnimateIn>
           </div>
 
           {/* Right: visual */}
@@ -768,7 +747,7 @@ function TutorDemo() {
             <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#22D3EE', letterSpacing: '0.08em', marginBottom: 16, textTransform: 'uppercase' }}>Live demo</p>
             <h2 style={{ fontFamily: 'Sora, sans-serif', fontWeight: 700, fontSize: 'clamp(28px,3.5vw,52px)', color: '#F5F7FF', letterSpacing: '-0.025em', lineHeight: 1.1, marginBottom: 16 }}>Meet your AI tutor</h2>
             <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 16, color: '#9AA3B8', maxWidth: 560, margin: '0 auto', lineHeight: 1.65 }}>
-              Not a voiceover. Not a solution dump. A tutor that teaches through voice, visuals, live whiteboard drawings, and worked examples.
+              Not a voiceover. Not a solution dump. A preview of the voice-and-whiteboard tutor we are building: a scripted demo, not the live product.
             </p>
           </div>
         </AnimateIn>
@@ -1162,7 +1141,7 @@ function HowItWorks() {
     },
     {
       n: '02', icon: '▶', title: 'Teach', color: '#22D3EE',
-      desc: 'Aria, your AI tutor, explains concepts interactively via voice, whiteboard, and worked examples — never just dumps answers.',
+      desc: 'Every practice question comes with a step-by-step explanation, so you learn the method and not just the result.',
     },
     {
       n: '03', icon: '↻', title: 'Adapt', color: '#B6FF3B',
@@ -1435,73 +1414,6 @@ function Mentorship() {
 // TESTIMONIALS
 // ═══════════════════════════════════════════════════════════════════
 
-function Testimonials() {
-  const cards = [
-    { init: 'AK', name: 'Amara K.', badge: '+92 pts', score: 'GMAT 620 → 712', text: "The whiteboard explanations are genuinely different. I'd watched dozens of YouTube videos on DS and never clicked — Aria showed me once and it stuck." },
-    { init: 'RN', name: 'Rohan N.', badge: 'GRE 318 → 333', score: '+15 pts', text: "I'd been stuck at 318 for two attempts. Three months with Tutori and I finally broke 330. The adaptive questions are uncanny — it always finds your weak spots." },
-    { init: 'SF', name: 'Sophie F.', badge: '+80 pts', score: 'GMAT 650 → 730', text: 'The timed sets showed me exactly where I was losing minutes. Fixing my pacing on Data Insights was worth more than another month of content.' },
-    { init: 'DM', name: 'Daniel M.', badge: 'GRE 321 → 330', score: '+9 pts', text: "The score projection was accurate to within 2 points. It told me I'd hit 330 in week 10, and I did it in week 9." },
-    { init: 'LP', name: 'Lena P.', badge: '+68 pts', score: 'GMAT 672 → 740', text: "I uploaded all my MBA prep notes and Tutori turned them into practice questions in minutes. I didn't know AI could do that." },
-    { init: 'JC', name: 'James C.', badge: 'GRE 325 → 336', score: '+11 pts', text: 'The voice mode is surreal. Having Aria talk me through a tough RC passage felt exactly like having a tutor in the room.' },
-    { init: 'MB', name: 'Maya B.', badge: '+110 pts', score: 'GMAT 590 → 700', text: 'From 590 to 700 in 14 weeks. I studied part-time around a full-time job. The roadmap told me exactly what to do each day.' },
-    { init: 'TK', name: 'Takuya K.', badge: 'GRE 310 → 328', score: '+18 pts', text: "Best decision I made for GRE prep. Mistake intelligence showed me it was always time pressure, not concept gaps, costing me points." },
-  ]
-
-  const doubled = [...cards, ...cards]
-
-  return (
-    <section style={{ padding: 'clamp(80px,10vw,160px) 0', overflow: 'hidden' }}>
-      <AnimateIn>
-        <div style={{ textAlign: 'center', marginBottom: 60, padding: '0 clamp(24px,8vw,120px)' }}>
-          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#22D3EE', letterSpacing: '0.08em', marginBottom: 16, textTransform: 'uppercase' }}>Student stories</p>
-          <h2 style={{ fontFamily: 'Sora, sans-serif', fontWeight: 700, fontSize: 'clamp(28px,3.5vw,52px)', color: '#F5F7FF', letterSpacing: '-0.025em', lineHeight: 1.1 }}>
-            Real scores. Real people.
-          </h2>
-        </div>
-      </AnimateIn>
-
-      <div className="marquee-wrap" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {/* Row 1 — forward */}
-        <div style={{ overflow: 'hidden' }}>
-          <div className="marquee-track marquee-track-fwd">
-            {doubled.map((c, i) => (
-              <div key={i} className="grad-border" style={{ width: 320, flexShrink: 0, padding: 24 }}>
-                <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16 }}>
-                  <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'rgba(124,92,255,0.15)', border: '1px solid rgba(124,92,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Sora, sans-serif', fontWeight: 700, fontSize: 12, color: '#7C5CFF', flexShrink: 0 }}>{c.init}</div>
-                  <div>
-                    <div style={{ fontFamily: 'Sora, sans-serif', fontWeight: 600, fontSize: 14, color: '#F5F7FF' }}>{c.name}</div>
-                    <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#9AA3B8' }}>{c.score}</div>
-                  </div>
-                  <div style={{ marginLeft: 'auto', fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#B6FF3B', background: 'rgba(182,255,59,0.1)', border: '1px solid rgba(182,255,59,0.2)', padding: '3px 8px', borderRadius: 999, flexShrink: 0 }}>{c.badge}</div>
-                </div>
-                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#9AA3B8', lineHeight: 1.6 }}>"{c.text}"</p>
-              </div>
-            ))}
-          </div>
-        </div>
-        {/* Row 2 — reverse */}
-        <div style={{ overflow: 'hidden' }}>
-          <div className="marquee-track marquee-track-rev">
-            {[...doubled].reverse().map((c, i) => (
-              <div key={i} className="grad-border" style={{ width: 320, flexShrink: 0, padding: 24 }}>
-                <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16 }}>
-                  <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'rgba(34,211,238,0.1)', border: '1px solid rgba(34,211,238,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Sora, sans-serif', fontWeight: 700, fontSize: 12, color: '#22D3EE', flexShrink: 0 }}>{c.init}</div>
-                  <div>
-                    <div style={{ fontFamily: 'Sora, sans-serif', fontWeight: 600, fontSize: 14, color: '#F5F7FF' }}>{c.name}</div>
-                    <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#9AA3B8' }}>{c.score}</div>
-                  </div>
-                  <div style={{ marginLeft: 'auto', fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#22D3EE', background: 'rgba(34,211,238,0.1)', border: '1px solid rgba(34,211,238,0.2)', padding: '3px 8px', borderRadius: 999, flexShrink: 0 }}>{c.badge}</div>
-                </div>
-                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#9AA3B8', lineHeight: 1.6 }}>"{c.text}"</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
 // ═══════════════════════════════════════════════════════════════════
 // PRICING
 // ═══════════════════════════════════════════════════════════════════
@@ -1651,6 +1563,10 @@ function FAQ() {
     {
       q: 'How accurate are the score projections?',
       a: 'The free diagnostic gives a rough estimate from a short sample of questions, so treat it as a starting point rather than a prediction of your official score. The more you practise, the better the picture of where you stand.',
+    },
+    {
+      q: 'How do I cancel, and can I get a refund?',
+      a: "Sign in, open Account and choose Manage billing to cancel any time. You keep access until the end of the period you paid for. If you are not happy, email us within 7 days of your first payment for a full refund. Details are on the Refund Policy page.",
     },
     {
       q: 'Do I get access to real people?',
@@ -1812,6 +1728,12 @@ function Footer() {
     Help: [
       { label: 'FAQ', href: '#faq' },
       { label: 'Mentors', href: '#mentors' },
+      { label: 'Contact', href: '/contact' },
+    ],
+    Legal: [
+      { label: 'Terms of Service', href: '/terms' },
+      { label: 'Privacy Policy', href: '/privacy' },
+      { label: 'Refund Policy', href: '/refunds' },
     ],
   }
   const linkStyle = { fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#9AA3B8', textDecoration: 'none', background: 'none', border: 0, padding: 0, cursor: 'pointer', textAlign: 'left' as const }
@@ -1819,7 +1741,7 @@ function Footer() {
   return (
     <footer style={{ borderTop: '1px solid rgba(255,255,255,0.07)', padding: 'clamp(60px,6vw,100px) clamp(24px,8vw,120px) 40px' }}>
       <div style={{ maxWidth: 1440, margin: '0 auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1.6fr repeat(3, 1fr)', gap: 48, marginBottom: 64 }} className="r-footer">
+        <div style={{ display: 'grid', gridTemplateColumns: '1.6fr repeat(4, 1fr)', gap: 48, marginBottom: 64 }} className="r-footer">
           {/* Brand */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
@@ -1853,7 +1775,7 @@ function Footer() {
             © 2026 Tutori AI
           </span>
           <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#9AA3B8', opacity: 0.7 }}>
-            Built with AI.
+            Support: <a href={`mailto:${SUPPORT_EMAIL}`} style={{ color: 'inherit' }}>{SUPPORT_EMAIL}</a>
           </span>
         </div>
       </div>
@@ -1866,6 +1788,9 @@ function Footer() {
 // ═══════════════════════════════════════════════════════════════════
 
 export default function App() {
+  if (typeof window !== 'undefined' && isLegalPath(window.location.pathname)) {
+    return <LegalPage path={window.location.pathname} />
+  }
   return (
     <AppProvider>
     <div style={{ minHeight: '100vh', overflowX: 'hidden' }}>
@@ -1878,7 +1803,6 @@ export default function App() {
         <HowItWorks />
         <ScoreDashboard />
         <Mentorship />
-        <Testimonials />
         <Pricing />
         <FAQ />
         <FinalCTA />
