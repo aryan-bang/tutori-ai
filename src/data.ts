@@ -169,3 +169,6 @@ export function saveLead(lead: Lead): boolean {
 }
 
 export const emailOk = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s)
+
+export const SUPPORT_EMAIL = 'tutoriaisupport0@gmail.com'
+export const LEGAL_UPDATED = '2 November 2026'
