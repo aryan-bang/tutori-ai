@@ -15,7 +15,8 @@ export async function POST(request: Request) {
 
   let body: { plan?: string; billing?: string }
   try { body = await request.json() } catch { return json({ error: 'Bad request.' }, 400) }
-  if (body.plan !== 'pro' && body.plan !== 'mentor') return json({ error: 'Unknown plan.' }, 400)
+  if (body.plan === 'mentor') return json({ error: 'That plan is not available yet.' }, 400)
+  if (body.plan !== 'pro') return json({ error: 'Unknown plan.' }, 400)
   if (body.billing !== 'monthly' && body.billing !== 'annual') return json({ error: 'Unknown billing period.' }, 400)
   const plan: PlanSlug = body.plan
   const billing: Billing = body.billing

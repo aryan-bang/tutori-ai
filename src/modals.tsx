@@ -409,7 +409,7 @@ export function SignupModal({ plan, price, annual, onClose, onSave, onDiagnostic
 
   return (
     <Modal onClose={onClose} label={`Reserve ${plan}`}>
-      <Title sub={`${price ? `$${price}/mo, billed ${annual ? 'annually' : 'monthly'}. ` : ''}Payments are not switched on yet, so nothing is charged. We'll email you when your spot opens.`}>Reserve {plan}</Title>
+      <Title sub={`${price ? `$${price}/mo, billed ${annual ? 'annually' : 'monthly'}. ` : ''}Nothing is charged. We'll email you when there is news.`}>{price ? `Reserve ${plan}` : plan}</Title>
       <form onSubmit={submit} noValidate>
         <div className="m-seg" role="group" aria-label="Exam">
           {(['GMAT', 'GRE'] as const).map(x => <button type="button" key={x} aria-pressed={exam === x} onClick={() => setExam(x)}>{x === 'GMAT' ? 'GMAT Focus' : 'GRE'}</button>)}

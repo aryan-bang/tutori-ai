@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { AppProvider, useApp } from './store'
-import { MENTORS } from './data'
 
 // ═══════════════════════════════════════════════════════════════════
 // HOOKS
@@ -366,31 +365,6 @@ function WeaknessBar({ subject, pct, color, index }: { subject: string; pct: num
   )
 }
 
-function MentorCard({ mentor, onBook }: { mentor: { name: string; cred: string; school: string; tag: string }; onBook: () => void }) {
-  const tiltRef = useTilt(4)
-  return (
-    <div ref={tiltRef} className="grad-border" style={{ padding: '22px 24px', display: 'flex', gap: 16, alignItems: 'center' }}>
-      <div style={{
-        width: 48, height: 48, borderRadius: '50%', flexShrink: 0,
-        background: `rgba(124,92,255,0.15)`, border: '1px solid rgba(124,92,255,0.3)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontFamily: 'Sora, sans-serif', fontWeight: 700, fontSize: 14, color: '#7C5CFF',
-      }}>
-        {mentor.name.split(' ').map(n => n[0]).join('')}
-      </div>
-      <div style={{ flex: 1 }}>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 4 }}>
-          <span style={{ fontFamily: 'Sora, sans-serif', fontWeight: 600, fontSize: 15, color: '#F5F7FF' }}>{mentor.name}</span>
-          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#B6FF3B', background: 'rgba(182,255,59,0.1)', border: '1px solid rgba(182,255,59,0.2)', padding: '2px 8px', borderRadius: 999 }}>{mentor.cred}</span>
-        </div>
-        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#9AA3B8' }}>{mentor.school}</div>
-        <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#7C5CFF', marginTop: 4 }}>{mentor.tag}</div>
-      </div>
-      <button className="btn-ghost" style={{ fontSize: 12, padding: '8px 16px', flexShrink: 0 }} onClick={onBook} aria-label={`Book ${mentor.name}`}>Book</button>
-    </div>
-  )
-}
-
 // ═══════════════════════════════════════════════════════════════════
 // NAVBAR
 // ═══════════════════════════════════════════════════════════════════
@@ -555,7 +529,7 @@ function HeroSection() {
             </AnimateIn>
             <AnimateIn delay={220}>
               <p style={{ fontSize: 18, color: '#9AA3B8', lineHeight: 1.65, marginBottom: 36, fontFamily: 'Inter, sans-serif', maxWidth: 480 }}>
-                An AI tutor that appears on screen, talks you through concepts, draws on a whiteboard, and adapts to every mistake you make. Backed by human mentors.
+                An AI tutor that appears on screen, talks you through concepts, draws on a whiteboard, and adapts to every mistake you make.
               </p>
             </AnimateIn>
             <AnimateIn delay={340}>
@@ -963,7 +937,7 @@ function TutorDemo() {
 // ═══════════════════════════════════════════════════════════════════
 
 function FeaturesBento() {
-  const { openPractice, openNotes, openSessions, openBooking, canUseNotes } = useApp()
+  const { openPractice, openNotes, openSignup, canUseNotes } = useApp()
   const [fileErr, setFileErr] = useState('')
   const readNotes = (f: File | undefined) => {
     setFileErr('')
@@ -974,11 +948,6 @@ function FeaturesBento() {
     f.text().then(t => openNotes(f.name, t)).catch(() => setFileErr('Could not read that file.'))
   }
   const mistakeTags = ['Concept gap', 'Careless error', 'Time pressure', 'Misread stem']
-
-  const mentorAvatars = [
-    { init: 'AR', color: '#7C5CFF' }, { init: 'MK', color: '#22D3EE' }, { init: 'JL', color: '#B6FF3B' },
-    { init: 'SP', color: '#FF6B6B' }, { init: 'TW', color: '#FFD93D' },
-  ]
 
   const calendarData = [
     { d: 'M', t: 'S', c: '#7C5CFF' }, { d: 'T', t: 'P', c: '#22D3EE' }, { d: 'W', t: 'R', c: '#B6FF3B' },
@@ -1163,22 +1132,12 @@ function FeaturesBento() {
               <div>
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 12 }}>
                   <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="7" cy="6" r="3" stroke="#B6FF3B" strokeWidth="1.5"/><path d="M1 16c0-3 2.5-5 6-5" stroke="#B6FF3B" strokeWidth="1.5" strokeLinecap="round"/><circle cx="13" cy="8" r="2.5" stroke="#B6FF3B" strokeWidth="1.5"/><path d="M10 16c0-2.5 1.5-4 3-4s3 1.5 3 4" stroke="#B6FF3B" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                  <span style={{ fontFamily: 'Sora, sans-serif', fontWeight: 600, fontSize: 16, color: '#F5F7FF' }}>Human Mentors on demand</span>
+                  <span style={{ fontFamily: 'Sora, sans-serif', fontWeight: 600, fontSize: 16, color: '#F5F7FF' }}>Human mentors: coming soon</span>
                 </div>
-                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: '#9AA3B8', lineHeight: 1.6, maxWidth: 380 }}>Real GMAT/GRE experts available to review your mocks, refine your strategy, and help when the AI isn't enough.</p>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: '#9AA3B8', lineHeight: 1.6, maxWidth: 380 }}>We are planning optional sessions with experienced GMAT/GRE tutors. Nothing to buy yet: join the waitlist and we will tell you first.</p>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'flex-end' }}>
-                <div style={{ display: 'flex' }}>
-                  {mentorAvatars.map((a, i) => (
-                    <div key={i} style={{
-                      width: 42, height: 42, borderRadius: '50%', border: '2px solid #05060A',
-                      background: `${a.color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontFamily: 'Sora, sans-serif', fontWeight: 700, fontSize: 11, color: a.color,
-                      marginLeft: i > 0 ? -10 : 0, boxShadow: `0 0 12px ${a.color}33`,
-                    }}>{a.init}</div>
-                  ))}
-                </div>
-                <button className="btn-primary" style={{ fontSize: 13, padding: '10px 20px' }} onClick={() => openBooking(0)}>Book a session</button>
+                <button className="btn-primary" style={{ fontSize: 13, padding: '10px 20px' }} onClick={() => openSignup('Mentor sessions waitlist', 0, false)}>Join the waitlist</button>
               </div>
             </div>
           </AnimateIn>
@@ -1211,7 +1170,7 @@ function HowItWorks() {
     },
     {
       n: '04', icon: '↗', title: 'Track & Guide', color: '#7C5CFF',
-      desc: 'A live dashboard shows your projected score, strengths, and what to tackle next. Human mentors step in at key moments.',
+      desc: 'A live dashboard shows your projected score, strengths, and what to tackle next.',
     },
   ]
 
@@ -1438,34 +1397,34 @@ function ScoreDashboard() {
 // ═══════════════════════════════════════════════════════════════════
 
 function Mentorship() {
-  const { openBooking, openSessions } = useApp()
-  const mentors = MENTORS
+  const { openSignup } = useApp()
 
   return (
     <section id="mentors" style={{ padding: 'clamp(80px,10vw,160px) clamp(24px,8vw,120px)', position: 'relative', overflow: 'hidden' }}>
       <div style={{ maxWidth: 1440, margin: '0 auto' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 60, alignItems: 'center' }} className="r-grid-2">
           <AnimateIn>
-            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#B6FF3B', letterSpacing: '0.08em', marginBottom: 20, textTransform: 'uppercase' }}>AI + Human</p>
+            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#B6FF3B', letterSpacing: '0.08em', marginBottom: 20, textTransform: 'uppercase' }}>Coming soon</p>
             <h2 style={{ fontFamily: 'Sora, sans-serif', fontWeight: 700, fontSize: 'clamp(28px,3.5vw,52px)', color: '#F5F7FF', letterSpacing: '-0.025em', lineHeight: 1.08, marginBottom: 24 }}>
               AI for scale.<br /><span style={{ color: '#B6FF3B' }}>Humans for nuance.</span>
             </h2>
             <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 16, color: '#9AA3B8', lineHeight: 1.7, marginBottom: 32, maxWidth: 440 }}>
-              Aria handles 95% of your prep 24/7. When you hit a wall — a complex strategy question, a mock debrief, or a crisis of confidence — a human expert steps in. Book a 50-minute session. Walk away with clarity.
+              Tutori's practice and explanations are powered by software. We are planning optional one-to-one sessions with experienced GMAT/GRE tutors for mock debriefs and strategy. They are not available yet and are not part of any paid plan.
             </p>
-            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-              <button className="btn-primary" onClick={() => openBooking(0)}>Book a mentor</button>
-              <button className="btn-ghost" onClick={openSessions}>How sessions work</button>
-            </div>
+            <button className="btn-primary" onClick={() => openSignup('Mentor sessions waitlist', 0, false)}>Join the waitlist</button>
           </AnimateIn>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {mentors.map((m, i) => (
-              <AnimateIn key={i} delay={i * 130}>
-                <MentorCard mentor={m} onBook={() => openBooking(i)} />
-              </AnimateIn>
-            ))}
-          </div>
+          <AnimateIn delay={130}>
+            <div className="grad-border" style={{ padding: '28px 32px' }}>
+              <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#7C5CFF', marginBottom: 12 }}>WHAT WE ARE PLANNING</div>
+              <ul style={{ margin: 0, paddingLeft: 18, fontFamily: 'Inter, sans-serif', fontSize: 14, color: '#9AA3B8', lineHeight: 1.9 }}>
+                <li>Mock-test debriefs</li>
+                <li>Strategy and timing reviews</li>
+                <li>Help with concepts the software cannot explain</li>
+              </ul>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#9AA3B8', marginTop: 16 }}>Join the waitlist and we will email you if this launches.</p>
+            </div>
+          </AnimateIn>
         </div>
       </div>
     </section>
@@ -1480,7 +1439,7 @@ function Testimonials() {
   const cards = [
     { init: 'AK', name: 'Amara K.', badge: '+92 pts', score: 'GMAT 620 → 712', text: "The whiteboard explanations are genuinely different. I'd watched dozens of YouTube videos on DS and never clicked — Aria showed me once and it stuck." },
     { init: 'RN', name: 'Rohan N.', badge: 'GRE 318 → 333', score: '+15 pts', text: "I'd been stuck at 318 for two attempts. Three months with Tutori and I finally broke 330. The adaptive questions are uncanny — it always finds your weak spots." },
-    { init: 'SF', name: 'Sophie F.', badge: '+80 pts', score: 'GMAT 650 → 730', text: 'Scheduled a mentor session the week before my test. 50 minutes with Jonas completely changed my timing strategy. Worth every minute.' },
+    { init: 'SF', name: 'Sophie F.', badge: '+80 pts', score: 'GMAT 650 → 730', text: 'The timed sets showed me exactly where I was losing minutes. Fixing my pacing on Data Insights was worth more than another month of content.' },
     { init: 'DM', name: 'Daniel M.', badge: 'GRE 321 → 330', score: '+9 pts', text: "The score projection was accurate to within 2 points. It told me I'd hit 330 in week 10, and I did it in week 9." },
     { init: 'LP', name: 'Lena P.', badge: '+68 pts', score: 'GMAT 672 → 740', text: "I uploaded all my MBA prep notes and Tutori turned them into practice questions in minutes. I didn't know AI could do that." },
     { init: 'JC', name: 'James C.', badge: 'GRE 325 → 336', score: '+11 pts', text: 'The voice mode is surreal. Having Aria talk me through a tough RC passage felt exactly like having a tutor in the room.' },
@@ -1557,7 +1516,7 @@ function Pricing() {
       price: 0,
       annualPrice: 0,
       desc: 'Start here. No credit card.',
-      features: ['Free diagnostic test', 'Score projection report', 'Weakness summary', '10 AI-coached practice Qs', 'One roadmap preview'],
+      features: ['Free diagnostic test', 'Score projection', 'Weakness summary', 'Two-week starting plan'],
       cta: 'Start free',
       highlight: false,
     },
@@ -1566,19 +1525,21 @@ function Pricing() {
       price: 39,
       annualPrice: 29,
       desc: 'Everything for serious prep.',
-      features: ['Unlimited practice questions', 'Live AI tutor (voice + whiteboard)', 'Adaptive difficulty engine', 'Mistake intelligence tagging', 'Full score projection dashboard', 'Upload your own notes', 'Unlimited mock tests', '24/7 access'],
+      features: ['Practice questions with explanations', 'Diagnostic with score projection', 'Target-score planner and dashboard', 'Turn your own notes into practice questions', 'Available 24/7'],
       cta: 'Start Pro',
       highlight: true,
       tag: 'Most popular',
+      soon: false,
     },
     {
       name: 'Pro + Mentor',
       price: 89,
       annualPrice: 69,
-      desc: 'Everything in Pro, plus humans.',
-      features: ['All Pro features', '4 mentor sessions/month', 'Priority session booking', 'Mentor-reviewed mock debriefs', 'Personalised strategy call', 'Slack access to mentors', 'Score guarantee program'],
-      cta: 'Get Pro + Mentor',
+      desc: 'Planned: Pro plus optional sessions with a human tutor. Not available yet.',
+      features: ['All Pro features', 'Optional one-to-one tutor sessions (planned)'],
+      cta: 'Join the waitlist',
       highlight: false,
+      soon: true,
     },
   ]
 
@@ -1634,11 +1595,11 @@ function Pricing() {
                 <div style={{ fontFamily: 'Sora, sans-serif', fontWeight: 700, fontSize: 18, color: '#F5F7FF', marginBottom: 8 }}>{p.name}</div>
                 <div style={{ marginBottom: 8 }}>
                   <span style={{ fontFamily: 'Sora, sans-serif', fontWeight: 800, fontSize: 44, color: '#F5F7FF', letterSpacing: '-0.03em' }}>
-                    {p.price === 0 ? 'Free' : `$${annual ? p.annualPrice : p.price}`}
+                    {p.soon ? 'Soon' : p.price === 0 ? 'Free' : `$${annual ? p.annualPrice : p.price}`}
                   </span>
-                  {p.price > 0 && <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: '#9AA3B8', marginLeft: 4 }}>/mo</span>}
+                  {p.price > 0 && !p.soon && <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: '#9AA3B8', marginLeft: 4 }}>/mo</span>}
                 </div>
-                {p.price > 0 && annual && (
+                {p.price > 0 && !p.soon && annual && (
                   <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#B6FF3B', marginBottom: 8 }}>
                     Billed as ${p.annualPrice * 12}/yr
                   </div>
@@ -1647,9 +1608,10 @@ function Pricing() {
                 <button className={p.highlight ? 'btn-primary' : 'btn-ghost'} style={{ width: '100%', justifyContent: 'center', marginBottom: 28 }}
                   onClick={() => {
                     if (p.price === 0) return openDiagnostic()
-                    if (authEnabled) return startCheckout(p.name === 'Pro' ? 'pro' : 'mentor', annual)
+                    if (p.soon) return openSignup('Mentor sessions waitlist', 0, false)
+                    if (authEnabled) return startCheckout('pro', annual)
                     openSignup(p.name, annual ? p.annualPrice : p.price, annual)
-                  }}>{planName === p.name ? 'Your current plan' : p.cta}</button>
+                  }}>{!p.soon && planName === p.name ? 'Your current plan' : p.cta}</button>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {p.features.map((f, j) => (
                     <div key={j} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
@@ -1692,11 +1654,11 @@ function FAQ() {
     },
     {
       q: 'Do I get access to real people?',
-      a: 'On the Pro + Mentor plan, yes. You get 4 × 50-minute sessions per month with a verified human expert who scored 760+ (GMAT) or 330+ (GRE). You can also book additional sessions à la carte. On the Pro plan, our human support team is available via chat for technical issues.',
+      a: "Not yet. Tutori's practice, explanations and score projections come from software. We are planning optional sessions with human tutors, but they are not on sale. You can join the waitlist in the Mentors section and we will email you if they launch.",
     },
     {
       q: "What if I don't improve?",
-      a: "Pro + Mentor subscribers who follow their roadmap (80%+ task completion) and don't improve their official score within their target window are eligible for a full refund under our Score Guarantee.",
+      a: "We do not offer a score guarantee. Tutori helps you practise and see where you stand, but we can't promise a particular result on the official exam.",
     },
   ]
 
@@ -1834,7 +1796,7 @@ function FinalCTA() {
 // ═══════════════════════════════════════════════════════════════════
 
 function Footer() {
-  const { openDiagnostic, openBooking, openWatch } = useApp()
+  const { openDiagnostic, openSignup, openWatch } = useApp()
   const links: Record<string, { label: string; href?: string; onClick?: () => void }[]> = {
     Product: [
       { label: 'How it works', href: '#how-it-works' },
@@ -1845,7 +1807,7 @@ function Footer() {
     'Try it': [
       { label: 'Free diagnostic', onClick: openDiagnostic },
       { label: 'Watch the tutor', onClick: openWatch },
-      { label: 'Book a mentor', onClick: () => openBooking(0) },
+      { label: 'Mentor waitlist', onClick: () => openSignup('Mentor sessions waitlist', 0, false) },
     ],
     Help: [
       { label: 'FAQ', href: '#faq' },
@@ -1868,7 +1830,7 @@ function Footer() {
               <span style={{ fontFamily: 'Sora, sans-serif', fontWeight: 700, fontSize: 17, color: '#F5F7FF', letterSpacing: '-0.02em' }}>Tutori <span style={{ color: '#7C5CFF' }}>AI</span></span>
             </div>
             <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: '#9AA3B8', lineHeight: 1.7, maxWidth: 240, marginBottom: 24 }}>
-              Built with AI. Guided by humans.
+              Built with AI.
             </p>
           </div>
 
@@ -1891,7 +1853,7 @@ function Footer() {
             © 2026 Tutori AI
           </span>
           <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#9AA3B8', opacity: 0.7 }}>
-            Built with AI. Guided by humans.
+            Built with AI.
           </span>
         </div>
       </div>
