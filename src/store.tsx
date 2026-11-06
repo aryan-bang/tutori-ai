@@ -227,6 +227,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
           onClose={close}
           onResult={saveDiagnostic}
           onRoadmap={() => setOverlay({ kind: 'signup', plan: 'Early access', price: 0, annual: false })}
+          onDashboard={() => {
+            setOverlay(null)
+            setTimeout(() => document.getElementById('roadmap')?.scrollIntoView({ behavior: 'smooth' }), 80)
+          }}
         />
       )}
       {overlay?.kind === 'practice' && <PracticeModal topic={overlay.topic} onClose={close} onDiagnostic={diag} />}

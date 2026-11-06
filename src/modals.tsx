@@ -177,7 +177,7 @@ function Review({ answers, onBack }: { answers: number[]; onBack: () => void }) 
   )
 }
 
-export function DiagnosticModal({ onClose, onResult, onRoadmap }: { onClose: () => void; onResult: (d: Diagnostic) => boolean; onRoadmap: (d: Diagnostic) => void }) {
+export function DiagnosticModal({ onClose, onResult, onRoadmap, onDashboard }: { onClose: () => void; onResult: (d: Diagnostic) => boolean; onRoadmap: (d: Diagnostic) => void; onDashboard: () => void }) {
   const [result, setResult] = useState<{ d: Diagnostic; answers: number[]; saved: boolean } | null>(null)
   const [review, setReview] = useState(false)
 
@@ -211,9 +211,9 @@ export function DiagnosticModal({ onClose, onResult, onRoadmap }: { onClose: () 
             ))}
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <button className="btn-lime" style={{ fontSize: 13, padding: '10px 20px' }} onClick={() => onRoadmap(result.d)}>Get my full roadmap</button>
+            <button className="btn-lime" style={{ fontSize: 13, padding: '10px 20px' }} onClick={onDashboard}>Open my study plan</button>
             <button className="btn-ghost" style={{ fontSize: 13, padding: '10px 20px' }} onClick={() => setReview(true)}>Review answers</button>
-            <button className="btn-ghost" style={{ fontSize: 13, padding: '10px 20px' }} onClick={onClose}>See my dashboard</button>
+            <button className="btn-ghost" style={{ fontSize: 13, padding: '10px 20px' }} onClick={() => onRoadmap(result.d)}>Email me my plan</button>
           </div>
           <Saved ok={result.saved} />
         </div>
