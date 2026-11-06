@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { AppProvider, useApp } from './store'
 import { LegalPage, isLegalPath } from './legal'
-import { SUPPORT_EMAIL } from './data'
+import { SUPPORT_EMAIL, PRACTICE_TOPIC_CAT, studyPlan } from './data'
 
 // ═══════════════════════════════════════════════════════════════════
 // HOOKS
@@ -1242,7 +1242,7 @@ function HowItWorks() {
 // ═══════════════════════════════════════════════════════════════════
 
 function ScoreDashboard() {
-  const { diagnostic, openDiagnostic } = useApp()
+  const { diagnostic, openDiagnostic, openPractice } = useApp()
   const [target, setTarget] = useState(720)
   const current = diagnostic?.score ?? 600
   const lo = Math.min(600, current)
@@ -1366,6 +1366,24 @@ function ScoreDashboard() {
             </div>
           </AnimateIn>
         </div>
+
+        {diagnostic && (() => {
+          const order = Object.entries(diagnostic.cats).sort((a, b) => a[1] - b[1]).map(([c]) => c)
+          const focus = order.find(c => c in PRACTICE_TOPIC_CAT) ?? 'Quant'
+          return (
+            <AnimateIn delay={100}>
+              <div className="grad-border" style={{ padding: 28, marginTop: 20 }}>
+                <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#9AA3B8', marginBottom: 14 }}>&gt; your.study_plan()  // built from your diagnostic, weakest area first: {order[0]}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {studyPlan(diagnostic).map((p, i) => (
+                    <p key={i} style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: '#F5F7FF', lineHeight: 1.6 }}>{p}</p>
+                  ))}
+                </div>
+                <button className="btn-lime" style={{ fontSize: 13, padding: '10px 20px', marginTop: 18 }} onClick={() => openPractice(focus)}>Practise {focus} now</button>
+              </div>
+            </AnimateIn>
+          )
+        })()}
       </div>
     </section>
   )
